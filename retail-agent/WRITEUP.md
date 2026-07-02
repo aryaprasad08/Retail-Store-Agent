@@ -101,7 +101,7 @@ Fourteen tools. Full parameter schemas live in `agent.py` (`TOOLS`); each maps
 ## The agent
 
 `agent.py` is ~120 lines of glue over Google Gemini (`google-genai` SDK,
-default model `gemini-2.5-flash` — chosen because its free tier needs no
+default model `gemini-2.5-flash-lite` — chosen because its free tier needs no
 credit card and includes function calling, so the project runs at zero cost).
 It holds a system prompt (today's date, the data shape, resolution etiquette,
 "last month" = May 2026), the standard function-calling loop at temperature 0,
@@ -118,6 +118,17 @@ system, it creates the PO as described, then receives against it.
 Because `store.py` has no LLM dependency, the provider is a swappable detail:
 pointing the same 14 tools at a different tool-calling model means rewriting
 only `agent.py`.
+
+
+#How I used AI
+
+I used Claude Code as a pair programmer throughout, but kept the architectural decisions and every correctness judgment with me.
+
+Scaffolding and boilerplate. AI drafted the SQLite schema, the CSV seeding, the 14 tool declarations, and the tool-calling loop — the mechanical layers where speed matters and the design space is narrow.
+Decisions I made, not the model. The choices that shape the submission were mine: splitting products into products + skus so variant and no-variant goods share one shape; freezing the Northwind cost onto the product; storing money as integer cents with a single half-up rounding function; and the one genuinely ambiguous rule — a damaged return reverses revenue but the store keeps the cost — which I reasoned through and then pinned with a test so the interpretation is explicit.
+Adversarial testing. I used AI to generate edge cases and to stress-test the agent, which is how I found and fixed a real bug — create_return accepted a non-positive quantity and would have crashed the session with an uncaught database error instead of a clean, recoverable message. That became a regression test.
+test_store.py and test_edge_cases.py check the rules deterministically with no model in the loop, which is also how I validated the AI-written code rather than eyeballing it.
+The provider migration. Moving the agent layer from one LLM SDK to Gemini's google-genai was AI-assisted and took minutes precisely because store.py has zero LLM dependency — the payoff of the split.
 
 ## What I'd do next
 
