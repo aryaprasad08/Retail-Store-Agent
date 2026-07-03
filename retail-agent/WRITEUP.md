@@ -122,14 +122,11 @@ only `agent.py`.
 
 ## How I used AI
 
-I used Claude Code as a pair programmer throughout.
+I used Claude Code as a pair programmer throughout. AI proposed the architecture, wrote the implementation, and made the call on the products/skus split — the mechanical layers where speed matters and the design space is narrow: the SQLite schema, the CSV seeding, the 14 tool declarations, and the tool-calling loop. During iteration I made specific calls based on what it produced — money as integer cents for exact rounding, and the reading of the ambiguous damaged-return rule (revenue reverses, but the store keeps the cost)./
 
-AI drafted the SQLite schema, the CSV seeding, the 14 tool declarations, and the tool-calling loop — the mechanical layers where speed matters and the design space is narrow.
-AI proposed the architecture and wrote the implementation and made the call to do the products/skus split; during iteration, I made changes during implementation based on the output; money as integer cents for exact rounding, and the reading of the ambiguous damaged-return rule.
-Adversarial testing. I used AI to generate edge cases and to stress-test the agent, which is how I found and fixed a real bug — create_return accepted a non-positive quantity and would have crashed the session with an uncaught database error instead of a clean, recoverable message. That became a regression test.
-test_store.py and test_edge_cases.py check the rules deterministically with no model in the loop, which is also how I validated the AI-written code rather than eyeballing it.
-Moving the agent layer from one LLM SDK to Gemini's google-genai was AI-assisted and took minutes precisely because store.py has zero LLM dependency — the payoff of the split.
+I also used AI adversarially: generating edge cases and stress-testing the agent is how I found and fixed a real bug — create_return accepted a non-positive quantity and would have crashed the session with an uncaught database error instead of a clean, recoverable message. That became a regression test.
 
+I didn't trust the AI-written code by eye — test_store.py and test_edge_cases.py check every rule deterministically with no model in the loop, which is how I validated it. And moving the agent layer to Gemini's google-genai SDK was AI-assisted and took minutes precisely because store.py has zero LLM dependency — the payoff of the split.
 ## What I'd do next
 
 Persist the database to disk behind a `--reset` flag, add an `audit_log`
